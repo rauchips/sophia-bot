@@ -13,7 +13,7 @@ export class AppController {
 
   @Get('/webhook')
   getVerified(
-    @Query() query: Record<string, any>,
+    @Query() query: object,
     @Res() res: Response,
   ): Response {
     console.log(query);
