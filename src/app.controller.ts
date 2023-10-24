@@ -1,37 +1,30 @@
-import { Controller, Get, Query, Res, Post, Req } from '@nestjs/common';
+import { Controller, Get, Query, Res, Post, Req, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response, Request } from 'express';
-import { createBot } from 'whatsapp-cloud-api';
-import axios, { HttpStatusCode } from 'axios';
+import axios from 'axios';
+import { WebhookDto } from './app.dto';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
 
   @Get('/webhook')
   getVerified(
     @Query() query: object,
     @Res() res: Response,
   ): Response {
-    console.log(query);
-    console.log(query["hub.mode"]);
+    // console.log(query);
+    // console.log(query["hub.mode"]);
 
-    const token = "meatyhamhock";
     const mode: string = query["hub.mode"];
     const challenge: string = query["hub.challenge"];
     const verify_token: string = query["hub.verify_token"];
 
-    if(mode === 'subscribe' && token === verify_token) {
-      console.log("WEBHOOK_VERIFIED");
+    if(this.appService.getVerified(mode, verify_token)){
       return res.status(200).send(challenge);
     }
     
-    return res.status(400).send(new Error('Error occured.'));
+    return res.status(400).send();
     
   }
 
@@ -39,12 +32,15 @@ export class AppController {
   async  postMessage(
     @Res() res: Response,
     @Req() req: Request,
+    @Body() webHookBody: WebhookDto
   ){
     // Parse the request body from the POST
   let body: any = req.body;
 
   // Check the Incoming webhook message
-  console.log(JSON.stringify(req.body));
+  //console.log(JSON.stringify(req.body));
+  console.log("Incoming webhook with dto implementation!");
+  console.log(JSON.stringify(webHookBody));
 
   // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
   if (req.body.object) {
@@ -67,17 +63,17 @@ export class AppController {
        await axios({
         method: "POST", // Required, HTTP method, a string, e.g. POST, GET
         url:
-          "https://graph.facebook.com/v18.0/149350494925771/messages",
+          `https://graph.facebook.com/v18.0/${process.env.fromNumberID}/messages`,
         data: {
           messaging_product: "whatsapp",
           recipient_type: "individual",
-          to: "254701093842",
+          to: process.env.to,
           type: "text",
-          text: { body: `Echo: ${from}---------------${msg_body}` },
+          text: { body: `Echo:\n${from}\n${msg_body}` },
         },
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": "Bearer EAAMbz96jR5sBOzxvwFa8e37y7427oDTQBky1EbXZCyiwqGqoGUC7lW53GSx5qXTZBZCoTYXKKge1uMHn53KCYrR9T9EUgDs1feaN0R7znjQGvfNZCEz5LahEUkp1k8zim5fYJsCRNoI6SIHGGROAjRZA8jwXcOyEiiOCtjCZCvwudsgQbW2BXx5jzBF07NnjbxMLFwt5MaP3evKIeDZBWgZD"
+          "Authorization": `Bearer ${process.env.authToken}`
         },
       });
     }
