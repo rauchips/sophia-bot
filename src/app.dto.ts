@@ -18,3 +18,10 @@ export class WebhookDto {
         }]
     }];
 }
+
+export enum MessageCategory {
+    MESSAGE = 0,
+    SENT = 1,
+    DELIVERED = 2,
+    READ = 3,
+  }
