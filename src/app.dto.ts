@@ -20,8 +20,8 @@ export class WebhookDto {
 }
 
 export enum MessageCategory {
-    MESSAGE = 0,
-    SENT = 1,
-    DELIVERED = 2,
-    READ = 3,
+    MESSAGE = "message",
+    SENT = "sent",
+    DELIVERED = "delivered",
+    READ = "read",
   }

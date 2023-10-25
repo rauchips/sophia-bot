@@ -36,16 +36,27 @@ export class AppService {
     let value = webHookDto.entry[0].changes[0].value;
     
     if(value.contacts && value.messages){
-      console.log("message");
+
+      console.log(MessageCategory.MESSAGE);
+      
       return MessageCategory.MESSAGE;
+
     }else if(value.statuses[0]["status"] === "sent"){
-      console.log("sent");
+      
+      console.log(MessageCategory.SENT);
+      
       return MessageCategory.SENT;
+
     }else if(value.statuses[0]["status"] === "delivered"){
-      console.log("delivered");
+      
+      console.log(MessageCategory.DELIVERED);
+      
       return MessageCategory.DELIVERED;
+
     }else if(value.statuses[0]["status"] === "read"){
-      console.log("read");
+      
+      console.log(MessageCategory.READ);
+      
       return MessageCategory.READ;
     }
   }
