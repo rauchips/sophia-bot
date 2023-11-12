@@ -12,7 +12,7 @@ export class AppService {
     return false;
   }
 
-  async sendMessage(message: string, to: string){
+  async sendMessage(message: string, to: string, url: boolean = false){
     await axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
       url:
@@ -22,7 +22,10 @@ export class AppService {
         recipient_type: "individual",
         to: to,
         type: "text",
-        text: { body: `Echo:\t${message}` },
+        text: {
+          preview_url: url,
+          body: message 
+        },
       },
       headers: { 
         "Content-Type": "application/json",
