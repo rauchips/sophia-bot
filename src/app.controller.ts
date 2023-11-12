@@ -53,7 +53,7 @@ export class AppController {
 
         console.log(phoneNumber);
   
-        console.log("sending main menu!");
+        console.log("Sending main menu!");
 
         let method: string = 'homeMenu';
         
