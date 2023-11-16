@@ -8,7 +8,7 @@ export class StoreService {
     ){}
 
     async get(key: string){
-        this.cache.get(key);
+        await this.cache.get(key);
     }
 
     async set(key: string, value: string) {
