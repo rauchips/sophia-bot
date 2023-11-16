@@ -3,10 +3,14 @@ import { AppService } from './app.service';
 import { Response, Request } from 'express';
 import axios, { HttpStatusCode } from 'axios';
 import { MessageCategory, WebhookDto } from './app.dto';
+import { MenuService } from './menu/menu.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly menuService: MenuService
+    ) {}
 
   @Get('/webhook')
   getVerified(
@@ -42,15 +46,34 @@ export class AppController {
       
       if(messageType === MessageCategory.MESSAGE && webHookBody.entry[0].changes[0].value.messages){
       
-        const msg_body = webHookBody.entry[0].changes[0].value.messages[0]["text"]["body"];
+        const phoneNumber: string = webHookBody.entry[0].changes[0].value.messages[0]["from"];
+        const msg_body: string = webHookBody.entry[0].changes[0].value.messages[0]["text"]["body"];
       
         console.log(msg_body);
-        console.log("----------------------------------------------------");
+
+        console.log(phoneNumber);
   
-        //if(msg_body === "Hi Sophia"){
-        console.log("sending main menu!");
-        await this.appService.sendMessage(msg_body, process.env.to);
-        //}
+        console.log("Sending main menu!");
+
+        let method: string = 'homeMenu';
+        
+        console.log(method);
+
+        const response: string[] = this.menuService.menuRunner(method, phoneNumber, msg_body);
+
+        method = response[0];
+
+        console.log(method);
+
+        console.log(response[1]);
+
+        if(response[0] === 'familyTree'){
+          await this.appService.sendMessage(response[1], process.env.to, true);
+        }
+        else{
+          await this.appService.sendMessage(response[1], process.env.to);
+        }
+        
       }
     console.log("------------------------end----------------------------");
       return res.sendStatus(200);
