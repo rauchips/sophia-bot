@@ -2,190 +2,220 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MenuService {
-    menuRunner(method: string, phoneNumber: string, response: string = null): string[]{
-        let menu: string[] = [];
-
-        switch (method) {
-            case 'homeMenu':
-                menu = this.homeMenu(phoneNumber, response);
-                break;
-            case 'familyTree':
-                menu = this.familyTree(phoneNumber);
-                break;
-            case 'tableBanking':
-                menu = this.tableBanking(phoneNumber, response);
-                break;
-            case 'monthlyContribution':
-                menu = this.monthlyContribution(phoneNumber, response);
-                break;
-            case 'loans':
-                menu = this.loans(phoneNumber, response);
-                break;
-            case 'reports':
-                menu = this.reports(phoneNumber, response);
-                break;
-            default:
-                menu = [this.menuRunner.name ,'This is when you pass invalid arguments' + this.menuRunner.name];
-                break;
-        }
-
-        return menu;
+  async menuRunner(method: string, args: string[]): Promise<string[]> {
+    if (method === null) {
+      return null
     }
 
-    private homeMenu(phoneNumber: string, response: string = null): string[] {
-        let menu: string[] = [];
+    return this[method](...args);
+  }
 
-        if(phoneNumber === '254701093842' && response === 'Hi Sophia'){
-            menu[0] = this.homeMenu.name;
-            menu[1] = '1. View Family Tree\n2. Table Banking\n3. Welfare\n0. Exit';
+  private homeMenu(
+    phoneNumber: string,
+    text: string = null,
+    verify: boolean = false,
+  ): string[] {
+    let menu: string[] = [
+      this.homeMenu.name,
+      'con',
+      "👋 Hello!\nMy name is _Sophia_, your friendly Table Banking Assistant! 💼💰 💁‍♀️ I'm here to make your table banking group's life easier and more efficient.\n\nTo start kindly select the options below: \n1. View Family Tree 👨‍👩‍👧‍👧🌴\n2. Table Banking 🏦\n3. Welfare 🤝\n0. Exit"
+    ];
 
-            return menu;
-        }
-
-        switch (response) {
-            case '1':
-                menu = this.familyTree(phoneNumber);
-                break;
-            case '2':
-                menu = this.tableBanking(phoneNumber);
-                break;
-            case '3':
-                menu = ['welfare', 'Here is the welfare menu.'];
-                break;
-            case '0':
-                menu = ['exit', 'Here is the exit menu.' + this.homeMenu.name];
-                break;
-            default:
-                menu = [ this.homeMenu.name, 'This is when you pass invalid arguments ' + this.homeMenu.name];
-                break;
-        }
-
-        return menu;
+    if (verify) {
+      return [
+        this.homeMenu.name,
+        'con',
+        `Hi _${text}_, please click on the link and enter your pin number to proceed.`,
+      ];
     }
 
-    private familyTree(phoneNumber: string): string[] {
-        if(phoneNumber === '254701093842'){
-           return [
-                this.familyTree.name,
-                'Click on this link to view our G7 Nairobi Chapter Family Tree: https://www.notion.so/rauchips/My-Portfolio-1412e4f90a7347818fd51ee6592a4251'
-            ];
-        }
+    if (phoneNumber === '254701093842' && text === '1234') {
+      return menu;
     }
 
-    private tableBanking(phoneNumber: string, response: string = null): string[] {
-        let menu: string[] = [];
-
-        if(phoneNumber === '254701093842' && response === null){
-            menu[0] = this.tableBanking.name;
-            menu[1] = '1. Monthly Contribution ~ KES 500/=\n2. Loans\n3. Reports\n0. Exit';
-            return menu;
-        }
-
-        switch (response) {
-            case '1':
-                menu = this.monthlyContribution(phoneNumber);
-                break;
-            case '2':
-                menu = this.loans(phoneNumber, response);
-                break;
-            case '3':
-                menu = this.reports(phoneNumber, response);
-                break;
-            case '0':
-                menu = ['exit', 'Here is the exit menu.' + this.tableBanking.name];
-                break;
-            default:
-                menu = ['deafault', 'This is when you pass invalid arguments' + this.tableBanking.name];
-                break;
-        }
-
-        return menu;
+    switch (text) {
+      case '1':
+        menu = this.familyTree(phoneNumber);
+        break;
+      case '2':
+        menu = this.tableBanking(phoneNumber);
+        break;
+      case '3':
+        menu = ['welfare', 'end', 'Here is the welfare menu.'];
+        break;
+      case '0':
+        menu = this.exit(phoneNumber);
+        break;
+      default:
+        menu = this.default(this.homeMenu.name, menu);
+        break;
     }
 
-    private monthlyContribution(phoneNumber: string, response: string = null): string[] {
-        let menu: string[] = [];
+    return menu;
+  }
 
-        if(phoneNumber === '254701093842' && response === null){
-            menu[0] = this.monthlyContribution.name;
-            menu[1] = '1. My Contribution Details\n2. Make Contribution\n0. Exit';
-            return menu;
-        }
+  private familyTree(phoneNumber: string): string[] {
+    if (phoneNumber === '254701093842') {
+      return [
+        this.familyTree.name,
+        'end',
+        'Click on this link to view our G7 Nairobi Chapter Family Tree: https://www.notion.so/rauchips/My-Portfolio-1412e4f90a7347818fd51ee6592a4251',
+      ];
+    }
+  }
 
-        switch (response) {
-            case '1':
-                menu = ['myContributionDetails', 'Here is my contribution details menu.'];
-                break;
-            case '2':
-                menu = ['makeContribution', 'Here is the make contribution menu.'];
-                break;
-            case '0':
-                menu = ['exit', 'Here is the exit menu.' + this.monthlyContribution.name];
-                break;
-            default:
-                menu = ['default', 'This is when you pass invalid arguments' + this.monthlyContribution.name];
-                break;
-        }
+  private tableBanking(phoneNumber: string, text: string = null): string[] {
+    let menu: string[] = [
+      this.tableBanking.name,
+      'con',
+      '1. Table Banking Monthly Fee ~ KES 500/=\n2. Loans\n3. Reports\n0. Exit'
+    ];
 
-        return menu;
+    if (phoneNumber === '254701093842' && text === null) {
+      return menu;
     }
 
-    private loans(phoneNumber: string, response: string = null): string[] {
-        let menu: string[] = [];
-
-        if(phoneNumber === '254701093842' && response === null){
-            menu[0] = this.loans.name;
-            menu[1] = '1. Loan Request\n2. Loan Repayment\n3. Loan Repayment Reminders\n4. Loans Status\n0. Exit';
-            return menu;
-        }
-
-        switch (response) {
-            case '1':
-                menu = ['loanRequest', 'Here is loan request menu.'];
-                break;
-            case '2':
-                menu = ['loanRepayment', 'Here is the loan repayment menu.'];
-                break;
-            case '3':
-                menu = ['loanRepaymentReminder', 'Here is the loan repayment reminder menu.'];
-                break;
-            case '4':
-                menu = ['loanStatus', 'Here is the loan status menu.'];
-                break;
-            case '0':
-                menu = ['exit', 'Here is the exit menu.' + this.loans.name];
-                break;
-            default:
-                menu = ['default', 'This is when you pass invalid arguments' + this.loans.name];
-                break;
-        }
-
-        return menu;
+    switch (text) {
+      case '1':
+        menu = this.monthlyFee(phoneNumber);
+        break;
+      case '2':
+        menu = this.loans(phoneNumber);
+        break;
+      case '3':
+        menu = this.reports(phoneNumber);
+        break;
+      case '0':
+        menu = this.exit(phoneNumber);
+        break;
+      default:
+        menu = this.default(this.tableBanking.name, menu);
+        break;
     }
 
-    private reports(phoneNumber: string, response: string = null): string[] {
-        let menu: string[] = [];
+    return menu;
+  }
 
-        if(phoneNumber === '254701093842' && response === null){
-            menu[0] = this.reports.name;
-            menu[1] = '1. Personal\n2. Group\n0. Exit';
-            return menu;
-        }
+  private monthlyFee(
+    phoneNumber: string,
+    text: string = null,
+  ): string[] {
+    let menu: string[] = [
+      this.monthlyFee.name,
+      'con',
+      '1. My Contribution Details\n2. Make Contribution\n0. Exit'
+    ];
 
-        switch (response) {
-            case '1':
-                menu = ['personalReports', 'Here is the personal reports menu.'];
-                break;
-            case '2':
-                menu = ['groupReports', 'Here is the group reports menu.'];
-                break;
-            case '0':
-                menu = ['exit', 'Here is the exit menu.' + this.reports.name];
-                break;
-            default:
-                menu = ['default', 'This is when you pass invalid arguments' + this.reports.name];
-                break;
-        }
-
-        return menu;
+    if (phoneNumber === '254701093842' && text === null) {
+      return menu;
     }
+
+    switch (text) {
+      case '1':
+        menu = [
+          'myContributionDetails',
+          'end',
+          'Here is my contribution details menu.',
+        ];
+        break;
+      case '2':
+        menu = ['makeContribution', 'end', 'Here is the make contribution menu.'];
+        break;
+      case '0':
+        menu = this.exit(phoneNumber);
+        break;
+      default:
+        menu = this.default(this.monthlyFee.name, menu);
+        break;
+    }
+
+    return menu;
+  }
+
+  private loans(phoneNumber: string, text: string = null): string[] {
+    let menu: string[] = [
+      this.loans.name,
+      'con',
+      '1. Loan Request\n2. Loan Repayment\n3. Loans Status\n0. Exit'
+    ];
+
+    if (phoneNumber === '254701093842' && text === null) {
+      return menu;
+    }
+
+    switch (text) {
+      case '1':
+        menu = ['loanRequest', 'end', 'Here is loan request menu.'];
+        break;
+      case '2':
+        menu = ['loanRepayment', 'end', 'Here is the loan repayment menu.'];
+        break;
+      case '3':
+        menu = ['loanStatus', 'end', 'Here is the loan status menu.'];
+        break;
+      case '0':
+        menu = this.exit(phoneNumber);
+        break;
+      default:
+        menu = this.default(this.loans.name, menu);
+        break;
+    }
+
+    return menu;
+  }
+
+  private reports(phoneNumber: string, text: string = null): string[] {
+    let menu: string[] = [
+      this.reports.name,
+      'con',
+      '1. View Reports\n2. Set Monthly Report Reminder Date ~ _Give date of month eg. 15_\n0. Exit'
+    ];
+
+    if (phoneNumber === '254701093842' && text === null) {
+      return menu;
+    }
+
+    switch (text) {
+      case '1':
+        menu = ['viewReports', 'end', 'Here is the personal and group reports temporary link.'];
+        break;
+      case '2':
+        menu = ['reportReminders', 'end', 'Here you can set the report reminder date.'];
+        break;
+      case '0':
+        menu = this.exit(phoneNumber);
+        break;
+      default:
+        menu = this.default(this.reports.name, menu);
+        break;
+    }
+
+    return menu;
+  }
+
+  private exit(phoneNumber: string): string[] {
+    if (phoneNumber === '254701093842') {
+      return [this.exit.name, 'end', 'Thank you for interacting with _Sophia_, see you later! 😊'];
+    }
+  }
+
+  private default(method: string, menu: string[]): string[] {
+    let invalidTextMessage: string = '*Invalid option, kindly enter the correct options displayed below.*\n\n';
+    invalidTextMessage += menu[2];
+
+    // if(method === 'default' && menu === null){
+    //   return [
+    //     method,
+    //     'end',
+    //     'Invalid message receieved, to start a session kindly type: *Hi Sophia*',
+    //   ];
+    // }
+    // else{
+      return [
+        method,
+        'con',
+        invalidTextMessage,
+      ];
+    //}
+  }
 }
