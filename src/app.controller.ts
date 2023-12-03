@@ -1,12 +1,13 @@
 import { Controller, Get, Query, Res, Post, Req, Body } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Response, Request } from 'express';
+import e, { Response, Request } from 'express';
 import { MessageCategory, WebhookDto } from './app.dto';
 import { MenuService } from './menu/menu.service';
 import { StoreService } from './store/store.service';
 import { ProfileService } from './profile/profile.service';
 import { v4 as uuidv4 } from 'uuid';
-import { exit } from 'process';
+import * as https from 'https';
+import axios from 'axios';
 
 @Controller()
 export class AppController {
@@ -17,6 +18,24 @@ export class AppController {
     private readonly storeService: StoreService,
     private readonly profileService: ProfileService,
   ) {}
+
+  @Get('/reports/personal')
+  async getPersonalReports(@Res() res: Response){
+    try {
+      res.redirect('https://localhost:7135/reports/personal');
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  @Get('/reports/group')
+  async getGroupReports(@Res() res: Response){
+    try {
+      res.redirect('https://localhost:7135/reports/group');
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 
   @Get('/webhook')
   getVerified(@Query() query: object, @Res() res: Response): Response {
@@ -90,8 +109,7 @@ export class AppController {
           }
 
         }else{
-          const profile = await this.profileService.fetchProfile(
-            profileName.split(' ').join(''),
+          const profile = await this.profileService.fetchProfile('RauChipinde',
           );
 
           if (!profile) {
@@ -119,17 +137,25 @@ export class AppController {
           response = await this.menuService.menuRunner(method, args);
         }
 
-        if (action === 'end') {
-          await this.storeService.delete(sessionKey);
-          await this.storeService.delete(menuKey);
-        }
-
         if(response !== null){
-          method === 'familyTree' ? await this.appService.sendMessage(response[2], process.env.to, true): await this.appService.sendMessage(response[2], process.env.to);;
+          if(method === 'familyTree' || method === 'reports'){
+            await this.appService.sendMessage(response[2], process.env.to, true)
+          }
+          else{
+            await this.appService.sendMessage(response[2], phoneNumber);;
+          }
+          //method === 'familyTree' ? : await this.appService.sendMessage(response[2], process.env.to);
           
           console.log('new menu name: ' + method);
 
           console.log('menu displayed: ' + response[2]);
+        }
+
+        if (action === 'end') {
+          await this.storeService.delete(sessionKey);
+          await this.storeService.delete(menuKey);
+          if(method !== 'exit') 
+            await this.appService.sendMessage('Thank you for interacting with _Sophia_, see you later! 😊', process.env.to)
         }
       }
       console.log('-----------------------end-----------------------------');
