@@ -18,7 +18,7 @@ export class ProfileService {
   
       const response = await axios({
         method: 'POST', // Required, HTTP method, a string, e.g. POST, GET
-        url: 'https://localhost:7135/user/profile',
+        url: 'https://webapp-231203115253.azurewebsites.net/user/profile',
         data: {
           Username: profileName,
         },

@@ -10,6 +10,15 @@ export class MenuService {
     return this[method](...args);
   }
 
+  private pin(phoneNumber: string, text: string, next: string): string[]{
+    let menu:string[] = [
+      this.pin.name,
+      'con',
+      `Hi _${text}_, kindly click on the link and enter your pin number to proceed.`,
+    ]
+
+    return menu;
+  }
   private homeMenu(
     phoneNumber: string,
     text: string = null,
@@ -18,39 +27,41 @@ export class MenuService {
     let menu: string[] = [
       this.homeMenu.name,
       'con',
-      "👋 Hello!\nMy name is _Sophia_, your friendly Table Banking Assistant! 💼💰 💁‍♀️ I'm here to make your table banking group's life easier and more efficient.\n\nTo start kindly select the options below: \n1. View Family Tree 👨‍👩‍👧‍👧🌴\n2. Table Banking 🏦\n3. Welfare 🤝\n4. Admin 🏛️\n0. Exit"
+      "👋 Hello!\nMy name is _Sophia_, your friendly Table Banking Companion! 💼💰 💁‍♀️ I'm here to make your table banking group's life easier and more efficient.\n\nTo start kindly select the options below: \n1. Table Banking 🏦\n2. Welfare 🤝\n3. G7 Family Tree 👨‍👩‍👧‍👧🌴\n4. Settings ⚙️\n5. Admin 🏛️\n0. Exit"
     ];
 
     if (verify) {
-      return [
-        this.homeMenu.name,
-        'con',
-        `Hi _${text}_, kindly click on the link and enter your pin number to proceed.`,
-      ];
+
+      menu = this.pin(phoneNumber, text, this.homeMenu.name);
+
+      return menu;
     }
 
-    if (phoneNumber === '254701093842' && text === '1234') {
+    if (phoneNumber && text === '1234') {
       return menu;
     }
 
     switch (text) {
       case '1':
-        menu = this.familyTree(phoneNumber);
-        break;
-      case '2':
         menu = this.tableBanking(phoneNumber);
         break;
+      case '2':
+        menu = ['welfare', 'end', 'Here is the *WELFARE* menu.'];
+        break;
       case '3':
-        menu = ['welfare', 'end', 'Here is the welfare menu.'];
+        menu = this.familyTree(phoneNumber);
         break;
       case '4':
+        menu = ['settings', 'end', 'Here is the *SETTINGS* menu.'];
+        break;
+      case '5':
         menu = this.admin(phoneNumber);
         break;
       case '0':
         menu = this.exit(phoneNumber);
         break;
       default:
-        menu = [ this.homeMenu.name, 'end', 'Wrong pin, please enter your correct pin number.\nYour session has been cancelled kindly type *Hi Sophia* to start a new session.'];
+        // menu = [ this.homeMenu.name, 'end', 'Wrong pin, please enter your correct pin number.\nYour session has been cancelled kindly type *Hi Sophia* to start a new session.'];
         menu = this.default(this.homeMenu.name, menu);
         break;
     }
@@ -59,12 +70,11 @@ export class MenuService {
   }
 
   private familyTree(phoneNumber: string): string[] {
-    if (phoneNumber === '254701093842') {
+    if (phoneNumber) {
       return [
         this.familyTree.name,
         'end',
-        'Click on this link to view our G7 Nairobi Chapter Family Tree:\nhttps://65e4-105-163-0-118.ngrok-free.app/reports/group'
-        //https://www.notion.so/rauchips/My-Portfolio-1412e4f90a7347818fd51ee6592a4251',
+        'Click on this link to view our G7 Nairobi Chapter Family Tree:'
       ];
     }
   }
@@ -76,7 +86,7 @@ export class MenuService {
       '1. Table Banking Monthly Fee ~ KES 500/=\n2. Loans\n3. Reports\n0. Exit'
     ];
 
-    if (phoneNumber === '254701093842' && text === null) {
+    if (phoneNumber && text === null) {
       return menu;
     }
 
@@ -111,7 +121,7 @@ export class MenuService {
       '1. My Contribution Details\n2. Make Contribution\n0. Exit'
     ];
 
-    if (phoneNumber === '254701093842' && text === null) {
+    if (phoneNumber && text === null) {
       return menu;
     }
 
@@ -144,7 +154,7 @@ export class MenuService {
       '1. Loan Request\n2. Loan Repayment\n3. Loans Status\n0. Exit'
     ];
 
-    if (phoneNumber === '254701093842' && text === null) {
+    if (phoneNumber && text === null) {
       return menu;
     }
 
@@ -176,16 +186,16 @@ export class MenuService {
       '1. Personal Reports\n2. Group Reports\n3. Set Monthly Report Reminder Date ~ _Give date of month eg. 15_\n0. Exit'
     ];
 
-    if (phoneNumber === '254701093842' && text === null) {
+    if (phoneNumber && text === null) {
       return menu;
     }
 
     switch (text) {
       case '1':
-        menu = ['viewPersonalReports', 'end', 'Here is the personal and group reports temporary link.\nhttps://65e4-105-163-0-118.ngrok-free.app/reports/personal'];
+        menu = ['viewPersonalReports', 'end', 'Here is the personal and group reports temporary link.\nhttps://webapp-231203115253.azurewebsites.net/reports/personal'];
         break;
       case '2':
-        menu = ['viewGroupReports', 'end', 'Here is the personal and group reports temporary link.\nhttps://65e4-105-163-0-118.ngrok-free.app/reports/group'];
+        menu = ['viewGroupReports', 'end', 'Here is the personal and group reports temporary link.\nhttps://webapp-231203115253.azurewebsites.net/reports/group'];
         break;
       case '2':
         menu = ['reportReminders', 'end', 'Here you can set the report reminder date.'];
@@ -202,7 +212,7 @@ export class MenuService {
   }
 
   private exit(phoneNumber: string): string[] {
-    if (phoneNumber === '254701093842') {
+    if (phoneNumber) {
       return [this.exit.name, 'end', 'Thank you for interacting with _Sophia_, see you soon! 😊'];
     }
   }
@@ -234,7 +244,7 @@ export class MenuService {
       '1. Upload M-Pesa Statement\n2. Send reminders to loanees\n3. Zoom Meeting\n0. Exit'
     ];
 
-    if (phoneNumber === '254701093842' && text === null) {
+    if (phoneNumber && text === null) {
       return menu;
     }
 

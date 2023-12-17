@@ -19,40 +19,36 @@ export class AppController {
     private readonly profileService: ProfileService,
   ) {}
 
-  @Get('/reports/personal')
-  async getPersonalReports(@Res() res: Response){
-    try {
-      res.redirect('https://localhost:7135/reports/personal');
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
+  // @Get('/reports/personal')
+  // async getPersonalReports(@Res() res: Response){
+  //   try {
+  //     res.redirect('https://webapp-231203115253.azurewebsites.net/reports/personal');
+  //   } catch (error) {
+  //     console.log(error.message);
+  //   }
+  // }
 
-  @Get('/reports/group')
-  async getGroupReports(@Res() res: Response){
-    try {
-      res.redirect('https://localhost:7135/reports/group');
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
+  // @Get('/reports/group')
+  // async getGroupReports(@Res() res: Response){
+  //   try {
+  //     res.redirect('https://localhost:7135/reports/group');
+  //   } catch (error) {
+  //     console.log(error.message);
+  //   }
+  // }
 
   @Get('/webhook')
   getVerified(@Query() query: object, @Res() res: Response): Response {
-    // console.log(query);
-    // console.log(query["hub.mode"]);
 
     const mode: string = query['hub.mode'];
     const challenge: string = query['hub.challenge'];
     const verify_token: string = query['hub.verify_token'];
 
-    return res.status(200).send(challenge);
+    if (this.appService.getVerified(mode, verify_token)) {
+      return res.status(200).send(challenge);
+    }
 
-    // if (this.appService.getVerified(mode, verify_token)) {
-    //   return res.status(200).send(challenge);
-    // }
-
-    // return res.status(400).send();
+    return res.status(400).send();
   }
 
   @Post('/webhook')
@@ -94,6 +90,8 @@ export class AppController {
 
         // if (session === null && msg_body === 'Hi Sophia') {
         // }
+        console.log(phoneNumber);
+
 
         if(session){
           const message_id =
@@ -111,7 +109,7 @@ export class AppController {
           }
 
         }else{
-          const profile = await this.profileService.fetchProfile('RauChipinde',
+          const profile = await this.profileService.fetchProfile(profileName.split(' ').join(''),
           );
 
           if (!profile) {
@@ -141,14 +139,14 @@ export class AppController {
 
         if(response !== null){
           if(method === 'familyTree' || method === 'reports'){
-            await this.appService.sendMessage(response[2], process.env.to, true)
+            await this.appService.sendMessage(response[2], phoneNumber, true)
           }
           else{
             await this.appService.sendMessage(response[2], phoneNumber);;
           }
           //method === 'familyTree' ? : await this.appService.sendMessage(response[2], process.env.to);
           
-          console.log('new menu name: ' + method);
+          console.log('new menu name: ' + response[0]);
 
           console.log('menu displayed: ' + response[2]);
         }
@@ -157,7 +155,7 @@ export class AppController {
           await this.storeService.delete(sessionKey);
           await this.storeService.delete(menuKey);
           if(method !== 'exit') 
-            await this.appService.sendMessage('Thank you for interacting with _Sophia_, see you later! 😊', process.env.to)
+            await this.appService.sendMessage('Thank you for interacting with _Sophia_, see you later! 😊', phoneNumber)
         }
       }
       console.log('-----------------------end-----------------------------');
