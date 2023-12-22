@@ -14,7 +14,12 @@ export class WebhookDto {
             contacts?: [{}];
             errors?: [{}];
             messages?: [{}];
-            statuses?: [{}];
+            statuses: [
+              {
+                status: string;
+                recipient_id: string;
+              },
+            ];
           };
           field: string;
         },

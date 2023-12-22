@@ -13,9 +13,12 @@ export class StoreService {
 
     try {
       value = await this.cache.get<string>(key);
-      this.logger.log('key: ' + key + ' value: ****');
+
+      if (value === undefined) {
+        this.logger.log(`Get key: ${key}`);
+      }
     } catch (error) {
-      console.log(error);
+      this.logger.error(error.message);
     }
 
     return value === undefined ? (value = null) : value;
@@ -26,16 +29,20 @@ export class StoreService {
       await this.cache.set(key, value, {
         ttl,
       });
+
+      this.logger.log(`Set key: ${key}`);
     } catch (error) {
-      console.log(error);
+      this.logger.error(error.message);
     }
   }
 
   async delete(key: string) {
     try {
       await this.cache.del(key);
+
+      this.logger.log(`Delete key: '${key}`);
     } catch (error) {
-      console.log(error);
+      this.logger.error(error.message);
     }
   }
 }

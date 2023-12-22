@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MenuService } from './menu/menu.service';
 import { StoreModule } from './store/store.module';
-import { ProfileService } from './profile/profile.service';
 import { StoreService } from './store/store.service';
 @Module({
   imports: [
@@ -14,6 +13,6 @@ import { StoreService } from './store/store.service';
     StoreModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MenuService, ProfileService, StoreService],
+  providers: [AppService, MenuService, StoreService],
 })
 export class AppModule {}

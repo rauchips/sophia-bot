@@ -11,32 +11,26 @@ export class MenuService {
   }
 
   private pin(phoneNumber: string, text: string, next: string): string[] {
-    let menu: string[] = [
-      this.pin.name,
-      'con',
-      `Hi _${text}_, kindly click on the link and enter your pin number to proceed.`,
-    ];
+    let menu: string[] = [];
+
+    if (phoneNumber) {
+      menu = [
+        next,
+        'con',
+        `Hi _${text}_, kindly click on the link and enter your pin number to proceed.`,
+      ];
+    }
 
     return menu;
   }
-  private homeMenu(
-    phoneNumber: string,
-    text: string = null,
-    verify: boolean = false,
-  ): string[] {
+  private homeMenu(phoneNumber: string, text: string = null): string[] {
     let menu: string[] = [
       this.homeMenu.name,
       'con',
       "👋 Hello!\nMy name is _Sophia_, your friendly Table Banking Companion! 💼💰 💁‍♀️ I'm here to make your table banking group's life easier and more efficient.\n\nTo start kindly select the options below: \n1. Table Banking 🏦\n2. Welfare 🤝\n3. G7 Family Tree 👨‍👩‍👧‍👧🌴\n4. Settings ⚙️\n5. Admin 🏛️\n0. Exit",
     ];
 
-    if (verify) {
-      menu = this.pin(phoneNumber, text, this.homeMenu.name);
-
-      return menu;
-    }
-
-    if (phoneNumber && text === '1234') {
+    if (phoneNumber && text === null) {
       return menu;
     }
 
@@ -73,7 +67,7 @@ export class MenuService {
       return [
         this.familyTree.name,
         'end',
-        'Click on this link to view our G7 Nairobi Chapter Family Tree:',
+        'https://www.notion.so/rauchips/Table-Banking-System-Specification-12757d1296b443148b6a13771beb975c',
       ];
     }
   }
@@ -195,17 +189,17 @@ export class MenuService {
         menu = [
           'viewPersonalReports',
           'end',
-          'Here is the personal and group reports temporary link.\nhttps://webapp-231203115253.azurewebsites.net/reports/personal',
+          'https://webapp-231203115253.azurewebsites.net/reports/personal',
         ];
         break;
       case '2':
         menu = [
           'viewGroupReports',
           'end',
-          'Here is the personal and group reports temporary link.\nhttps://webapp-231203115253.azurewebsites.net/reports/group',
+          'https://webapp-231203115253.azurewebsites.net/reports/group',
         ];
         break;
-      case '2':
+      case '3':
         menu = [
           'reportReminders',
           'end',
@@ -228,7 +222,7 @@ export class MenuService {
       return [
         this.exit.name,
         'end',
-        'Thank you for interacting with _Sophia_, see you soon! 😊',
+        'Thank you for interacting with _Sophia_.\nIf you need my help simply type *Hi Sophia*.\nSee you soon! 😊',
       ];
     }
   }
@@ -287,5 +281,15 @@ export class MenuService {
     }
 
     return menu;
+  }
+
+  private wrongPin(phoneNumber: string, text: string): string[] {
+    if (phoneNumber) {
+      return [
+        this.wrongPin.name,
+        'end',
+        `Hi _${text}_ , the pin you entered was invalid.\nPlease try again later with the correct pin.`,
+      ];
+    }
   }
 }
