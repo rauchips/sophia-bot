@@ -77,10 +77,14 @@ export class AppController {
 
         const sessionKey = phoneNumber + '-session';
         const menuKey = phoneNumber + '-menu';
+        const startKey = phoneNumber + '-start';
+        const endKey = phoneNumber + '-end';
+
         let session: string | null = await this.storeService.get(sessionKey);
+        let start: number | null = await this.storeService.get(startKey);
+        let end: number | null = await this.storeService.get(endKey);
 
-        let end: any;
-
+        console.log('Current Time: ' + Date.now());
         let response: string[] | null;
 
         let args: any[];
@@ -93,10 +97,10 @@ export class AppController {
         console.log(phoneNumber);
 
 
-        if(session){
+        if(session && start && end){
           const message_id =
             webHookBody.entry[0].changes[0].value.messages[0]['id'];
-          await this.appService.blueTick(message_id);
+          //await this.appService.blueTick(message_id);
 
           method = await this.storeService.get(menuKey);
           args = [phoneNumber, msg_body];
@@ -105,8 +109,15 @@ export class AppController {
           if(response){
             method = response[0];
             action = response[1];
-            await this.storeService.set(menuKey, method, end - Date.now());
+            //await this.storeService.set(menuKey, method, 120);
+            
+            console.log('Set New Menu Time: ' + (Math.floor((Date.now() - end) / 1000)));
+
+            await this.storeService.set(menuKey, method, Math.floor((end - Date.now()) / 1000));
           }
+
+        console.log('Current Time: ' + new Date(Date.now()));
+        console.log('Difference Time: ' + (Math.floor((Date.now() - end) / 1000)));
 
         }else{
           const profile = await this.profileService.fetchProfile(profileName.split(' ').join(''),
@@ -117,20 +128,24 @@ export class AppController {
           }
 
           const lifetime: number = Number(process.env.lifetime);
-          const start: Date = new Date(Date.now());
-          end = Date.now() + lifetime;
+          start = Date.now();
+          end = Date.now() + (lifetime * 1000);
 
-          console.log('Session started at: ' + start);
+          console.log('Session started at: ' + new Date(start));
+          console.log('Session ends at: ' + new Date(end));
+
+          await this.storeService.set(startKey, start, lifetime);
+          await this.storeService.set(endKey, end, lifetime);
 
           const message_id =
             webHookBody.entry[0].changes[0].value.messages[0]['id'];
-          await this.appService.blueTick(message_id);
+          //await this.appService.blueTick(message_id);
 
           session = uuidv4();
           await this.storeService.set(sessionKey, session, lifetime);
 
           method = 'homeMenu';
-          await this.storeService.set(menuKey, method, end - Date.now());
+          await this.storeService.set(menuKey, method, lifetime);
 
           args = [phoneNumber, profileName, true];
 
