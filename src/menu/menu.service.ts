@@ -10,48 +10,50 @@ export class MenuService {
     return this[method](...args);
   }
 
-  private pin(phoneNumber: string, text: string, next: string): string[] {
+  private pin(profilName: string, next: string): string[] {
     let menu: string[] = [];
 
-    if (phoneNumber) {
+    if (profilName) {
       menu = [
+        this.pin.name,
         next,
-        'con',
-        `Hi _${text}_, kindly click on the link and enter your pin number to proceed.`,
+        `Hi _${profilName}_, kindly click on the link and enter your pin number to proceed.`,
       ];
     }
 
     return menu;
   }
-  private homeMenu(phoneNumber: string, text: string = null): string[] {
+  private homeMenu(profilName: string, text: string = null): string[] {
     let menu: string[] = [
       this.homeMenu.name,
       'con',
       "👋 Hello!\nMy name is _Sophia_, your friendly Table Banking Companion! 💼💰 💁‍♀️ I'm here to make your table banking group's life easier and more efficient.\n\nTo start kindly select the options below: \n1. Table Banking 🏦\n2. Welfare 🤝\n3. G7 Family Tree 👨‍👩‍👧‍👧🌴\n4. Settings ⚙️\n5. Admin 🏛️\n0. Exit",
     ];
 
-    if (phoneNumber && text === null) {
+    if (profilName && text === null) {
       return menu;
     }
 
     switch (text) {
       case '1':
-        menu = this.tableBanking(phoneNumber);
+        menu = this.tableBanking(profilName);
         break;
       case '2':
         menu = ['welfare', 'end', 'Here is the *WELFARE* menu.'];
         break;
       case '3':
-        menu = this.familyTree(phoneNumber);
+        menu = this.familyTree(profilName);
         break;
       case '4':
         menu = ['settings', 'end', 'Here is the *SETTINGS* menu.'];
         break;
       case '5':
-        menu = this.admin(phoneNumber);
+        menu = this.admin(profilName);
+        //do this to trigger pin prompt before your specific menu
+        //menu = this.pin(profilName, this.admin.name)
         break;
       case '0':
-        menu = this.exit(phoneNumber);
+        menu = this.exit(profilName);
         break;
       default:
         // menu = [ this.homeMenu.name, 'end', 'Wrong pin, please enter your correct pin number.\nYour session has been cancelled kindly type *Hi Sophia* to start a new session.'];
@@ -62,8 +64,8 @@ export class MenuService {
     return menu;
   }
 
-  private familyTree(phoneNumber: string): string[] {
-    if (phoneNumber) {
+  private familyTree(profilName: string): string[] {
+    if (profilName) {
       return [
         this.familyTree.name,
         'end',
@@ -72,29 +74,29 @@ export class MenuService {
     }
   }
 
-  private tableBanking(phoneNumber: string, text: string = null): string[] {
+  private tableBanking(profilName: string, text: string = null): string[] {
     let menu: string[] = [
       this.tableBanking.name,
       'con',
       '1. Table Banking Monthly Fee ~ KES 500/=\n2. Loans\n3. Reports\n0. Exit',
     ];
 
-    if (phoneNumber && text === null) {
+    if (profilName && text === null) {
       return menu;
     }
 
     switch (text) {
       case '1':
-        menu = this.monthlyFee(phoneNumber);
+        menu = this.monthlyFee(profilName);
         break;
       case '2':
-        menu = this.loans(phoneNumber);
+        menu = this.loans(profilName);
         break;
       case '3':
-        menu = this.reports(phoneNumber);
+        menu = this.reports(profilName);
         break;
       case '0':
-        menu = this.exit(phoneNumber);
+        menu = this.exit(profilName);
         break;
       default:
         menu = this.default(this.tableBanking.name, menu);
@@ -104,14 +106,14 @@ export class MenuService {
     return menu;
   }
 
-  private monthlyFee(phoneNumber: string, text: string = null): string[] {
+  private monthlyFee(profilName: string, text: string = null): string[] {
     let menu: string[] = [
       this.monthlyFee.name,
       'con',
       '1. My Contribution Details\n2. Make Contribution\n0. Exit',
     ];
 
-    if (phoneNumber && text === null) {
+    if (profilName && text === null) {
       return menu;
     }
 
@@ -131,7 +133,7 @@ export class MenuService {
         ];
         break;
       case '0':
-        menu = this.exit(phoneNumber);
+        menu = this.exit(profilName);
         break;
       default:
         menu = this.default(this.monthlyFee.name, menu);
@@ -141,14 +143,14 @@ export class MenuService {
     return menu;
   }
 
-  private loans(phoneNumber: string, text: string = null): string[] {
+  private loans(profilName: string, text: string = null): string[] {
     let menu: string[] = [
       this.loans.name,
       'con',
       '1. Loan Request\n2. Loan Repayment\n3. Loans Status\n0. Exit',
     ];
 
-    if (phoneNumber && text === null) {
+    if (profilName && text === null) {
       return menu;
     }
 
@@ -163,7 +165,7 @@ export class MenuService {
         menu = ['loanStatus', 'end', 'Here is the loan status menu.'];
         break;
       case '0':
-        menu = this.exit(phoneNumber);
+        menu = this.exit(profilName);
         break;
       default:
         menu = this.default(this.loans.name, menu);
@@ -173,14 +175,14 @@ export class MenuService {
     return menu;
   }
 
-  private reports(phoneNumber: string, text: string = null): string[] {
+  private reports(profilName: string, text: string = null): string[] {
     let menu: string[] = [
       this.reports.name,
       'con',
       '1. Personal Reports\n2. Group Reports\n3. Set Monthly Report Reminder Date ~ _Give date of month eg. 15_\n0. Exit',
     ];
 
-    if (phoneNumber && text === null) {
+    if (profilName && text === null) {
       return menu;
     }
 
@@ -207,7 +209,7 @@ export class MenuService {
         ];
         break;
       case '0':
-        menu = this.exit(phoneNumber);
+        menu = this.exit(profilName);
         break;
       default:
         menu = this.default(this.reports.name, menu);
@@ -217,8 +219,8 @@ export class MenuService {
     return menu;
   }
 
-  private exit(phoneNumber: string): string[] {
-    if (phoneNumber) {
+  private exit(profilName: string): string[] {
+    if (profilName) {
       return [
         this.exit.name,
         'end',
@@ -239,14 +241,14 @@ export class MenuService {
     }
   }
 
-  private admin(phoneNumber: string, text: string = null): string[] {
+  private admin(profilName: string, text: string = null): string[] {
     let menu: string[] = [
       this.admin.name,
       'con',
       '1. Upload M-Pesa Statement\n2. Send reminders to loanees\n3. Zoom Meeting\n0. Exit',
     ];
 
-    if (phoneNumber && text === null) {
+    if (profilName && text === null) {
       return menu;
     }
 
@@ -273,18 +275,18 @@ export class MenuService {
         ];
         break;
       case '0':
-        menu = this.exit(phoneNumber);
+        menu = this.exit(profilName);
         break;
       default:
-        menu = this.default(this.tableBanking.name, menu);
+        menu = this.default(this.admin.name, menu);
         break;
     }
 
     return menu;
   }
 
-  private wrongPin(phoneNumber: string, text: string): string[] {
-    if (phoneNumber) {
+  private wrongPin(profilName: string, text: string): string[] {
+    if (profilName) {
       return [
         this.wrongPin.name,
         'end',
