@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Logger, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { MessageCategory, WebhookDto } from './app.dto';
 
 @Injectable()
 export class AppService {
+  private readonly logger: Logger = new Logger(AppService.name);
+
   getVerified(mode: string, verify_token: string): boolean {
     if (mode === 'subscribe' && process.env.token === verify_token) {
-      console.log('WEBHOOK_VERIFIED');
+      this.logger.log('WEBHOOK_VERIFIED');
       return true;
     }
     return false;
