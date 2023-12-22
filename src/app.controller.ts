@@ -13,7 +13,6 @@ import { Response, Request } from 'express';
 import { MessageCategory, WebhookDto } from './app.dto';
 import { MenuService } from './menu/menu.service';
 import { StoreService } from './store/store.service';
-import { ProfileService } from './profile/profile.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Controller()
@@ -22,27 +21,9 @@ export class AppController {
     private readonly appService: AppService,
     private readonly menuService: MenuService,
     private readonly storeService: StoreService,
-    private readonly profileService: ProfileService,
   ) {}
 
   private readonly logger: Logger = new Logger(AppController.name);
-  // @Get('/reports/personal')
-  // async getPersonalReports(@Res() res: Response){
-  //   try {
-  //     res.redirect('https://webapp-231203115253.azurewebsites.net/reports/personal');
-  //   } catch (error) {
-  //     console.log(error.message);
-  //   }
-  // }
-
-  // @Get('/reports/group')
-  // async getGroupReports(@Res() res: Response){
-  //   try {
-  //     res.redirect('https://localhost:7135/reports/group');
-  //   } catch (error) {
-  //     console.log(error.message);
-  //   }
-  // }
 
   @Get('/webhook')
   getVerified(@Query() query: object, @Res() res: Response): Response {
@@ -50,11 +31,15 @@ export class AppController {
     const challenge: string = query['hub.challenge'];
     const verify_token: string = query['hub.verify_token'];
 
-    if (this.appService.getVerified(mode, verify_token)) {
-      return res.status(200).send(challenge);
-    }
+    try {
+      if (this.appService.getVerified(mode, verify_token)) {
+        return res.status(200).send(challenge);
+      }
 
-    return res.status(400).send();
+      return res.status(400).send();
+    } catch (error) {
+      this.logger.error(error.message);
+    }
   }
 
   @Post('/webhook')
@@ -67,10 +52,9 @@ export class AppController {
       '-----------------------start-----------------------------',
     );
 
+    //this.logger.log('Wenhook Body:  ' + JSON.stringify(webHookBody));
     try {
       const messageType = this.appService.findMessageType(webHookBody);
-
-      this.logger.log('message type: ' + messageType);
 
       if (
         messageType === MessageCategory.MESSAGE &&
@@ -80,122 +64,189 @@ export class AppController {
           webHookBody.entry[0].changes[0].value.messages[0]['from'];
         const profileName: string =
           webHookBody.entry[0].changes[0].value.contacts[0]['profile']['name'];
+
+        this.logger.log(
+          `ProfileName: ${profileName} ~ PhoneNumber: ${phoneNumber} ~ MessageType: ${messageType}`,
+        );
         const msg_body: string =
           webHookBody.entry[0].changes[0].value.messages[0]['text']['body'];
 
+        //declare session, menu, start, end, pin and next menu keys
         const sessionKey = phoneNumber + '-session';
         const menuKey = phoneNumber + '-menu';
         const startKey = phoneNumber + '-start';
         const endKey = phoneNumber + '-end';
+        const pinKey = phoneNumber + '-pin';
+        const nextMenuKey = phoneNumber + '-next';
 
         let session: string | null = await this.storeService.get(sessionKey);
         let start: number | null = await this.storeService.get(startKey);
         let end: number | null = await this.storeService.get(endKey);
-
-        this.logger.log('Current Time: ' + Date.now());
         let response: string[] | null;
-
         let args: any[];
-
         let method: string | null;
         let action: string | null;
 
-        // if (session === null && msg_body === 'Hi Sophia') {
-        // }
-        this.logger.log(phoneNumber);
-
-        if (session && start && end) {
-          const message_id =
-            webHookBody.entry[0].changes[0].value.messages[0]['id'];
-          //await this.appService.blueTick(message_id);
-
-          method = await this.storeService.get(menuKey);
-          args = [phoneNumber, msg_body];
-
-          response = await this.menuService.menuRunner(method, args);
-          if (response) {
-            method = response[0];
-            action = response[1];
-            //await this.storeService.set(menuKey, method, 120);
-
-            this.logger.log(
-              'Set New Menu Time: ' + Math.floor((Date.now() - end) / 1000),
-            );
-
-            await this.storeService.set(
-              menuKey,
-              method,
-              Math.floor((end - Date.now()) / 1000),
-            );
-          }
-
-          this.logger.log('Current Time: ' + new Date(Date.now()));
-          this.logger.log(
-            'Difference Time: ' + Math.floor((Date.now() - end) / 1000),
-          );
-        } else {
-          const profile = await this.profileService.fetchProfile(
+        if (!(session && start && end)) {
+          //Fetch user profile
+          const profile = await this.appService.fetchProfile(
             profileName.split(' ').join(''),
           );
 
+          //if user does not exist return
           if (!profile) {
-            return;
+            this.logger.log(
+              '-----------------------end-----------------------------',
+            );
+
+            return res.sendStatus(200);
           }
 
-          const lifetime: number = Number(process.env.lifetime);
-          start = Date.now();
-          end = Date.now() + lifetime * 1000;
+          //hi sophia
+          if (msg_body.toLocaleLowerCase() !== 'hi sophia') {
+            this.logger.log(
+              '-----------------------end-----------------------------',
+            );
 
-          this.logger.log('Session started at: ' + new Date(start));
-          this.logger.log('Session ends at: ' + new Date(end));
+            await this.appService.sendMessage(
+              `Hi _${profileName}_, to interact with _Sophia_, kindly send: *Hi Sophia*`,
+              phoneNumber,
+            );
+            return res.sendStatus(200);
+          }
 
-          await this.storeService.set(startKey, start, lifetime);
-          await this.storeService.set(endKey, end, lifetime);
-
+          //extract message id and send a blue tick to the user for that message id
           const message_id =
             webHookBody.entry[0].changes[0].value.messages[0]['id'];
-          //await this.appService.blueTick(message_id);
+          await this.appService.blueTick(message_id);
 
+          //assign session, start, end, method and arguments
+          const lifetime: number = Number(process.env.lifetime);
           session = uuidv4();
-          await this.storeService.set(sessionKey, session, lifetime);
+          start = Date.now();
+          end = Date.now() + lifetime * 1000;
+          method = 'pin';
+          args = [phoneNumber, profileName, 'homeMenu'];
 
-          method = 'homeMenu';
+          //cache session, start, end, method
+          await this.storeService.set(sessionKey, session, lifetime);
+          await this.storeService.set(startKey, start, lifetime);
+          await this.storeService.set(endKey, end, lifetime);
           await this.storeService.set(menuKey, method, lifetime);
 
-          args = [phoneNumber, profileName, true];
-
+          //run menu
           response = await this.menuService.menuRunner(method, args);
+
+          method = response[0];
+          action = response[1];
+
+          //cache next menu to be called by pin
+          const nextMenuKey = phoneNumber + '-next';
+          await this.storeService.set(nextMenuKey, method, lifetime);
+
+          //to be removed set pin to 1234
+          await this.storeService.set(pinKey, '1234', lifetime);
+        } else {
+          //extract message id and send a blue tick to the user for that message id
+          const message_id =
+            webHookBody.entry[0].changes[0].value.messages[0]['id'];
+          await this.appService.blueTick(message_id);
+
+          //get method from cache and swtich accordingly
+          method = await this.storeService.get(menuKey);
+
+          switch (method) {
+            case 'pin':
+              //retrieve pin emojis set by sophia core
+              const pin = await this.storeService.get(pinKey);
+
+              //compare emojis receieved from user and the one set by sophia core
+              if (msg_body === pin) {
+                method = await this.storeService.get(nextMenuKey);
+                args = [phoneNumber];
+
+                response = await this.menuService.menuRunner(method, args);
+
+                if (response) {
+                  method = response[0];
+                  action = response[1];
+
+                  await this.storeService.set(
+                    menuKey,
+                    method,
+                    Math.floor((end - Date.now()) / 1000),
+                  );
+                }
+              } else {
+                method = 'wrongPin';
+                args = [phoneNumber, profileName];
+                response = await this.menuService.menuRunner(method, args);
+
+                method = response[0];
+                action = response[1];
+              }
+
+              break;
+
+            default:
+              args = [phoneNumber, msg_body];
+
+              response = await this.menuService.menuRunner(method, args);
+
+              if (response) {
+                method = response[0];
+                action = response[1];
+
+                await this.storeService.set(
+                  menuKey,
+                  method,
+                  Math.floor((end - Date.now()) / 1000),
+                );
+              }
+
+              break;
+          }
         }
 
-        if (response !== null) {
+        if (response) {
           if (method === 'familyTree' || method === 'reports') {
             await this.appService.sendMessage(response[2], phoneNumber, true);
           } else {
             await this.appService.sendMessage(response[2], phoneNumber);
           }
-          //method === 'familyTree' ? : await this.appService.sendMessage(response[2], process.env.to);
-
-          this.logger.log('new menu name: ' + response[0]);
-
-          this.logger.log('menu displayed: ' + response[2]);
         }
 
         if (action === 'end') {
           await this.storeService.delete(sessionKey);
+          await this.storeService.delete(startKey);
+          await this.storeService.delete(endKey);
           await this.storeService.delete(menuKey);
+          await this.storeService.delete(pinKey);
+          await this.storeService.delete(nextMenuKey);
+
           if (method !== 'exit')
             await this.appService.sendMessage(
-              'Thank you for interacting with _Sophia_, see you later! 😊',
+              'Thank you for interacting with _Sophia_, see you soon! 😊',
               phoneNumber,
             );
         }
+      } else {
+        const status = webHookBody.entry[0].changes[0].value.statuses[0].status;
+        const recipient =
+          webHookBody.entry[0].changes[0].value.statuses[0].recipient_id;
+        this.logger.log(
+          `PhoneNumber: ${recipient} ~ MessageType: ${messageType} ~ MessageStatus: ${status}`,
+        );
       }
+
       this.logger.log(
         '-----------------------end-----------------------------',
       );
+
       return res.sendStatus(200);
     } catch (error) {
-      console.log(error);
+      this.logger.error(error.message);
+
       return res.sendStatus(200);
     }
   }
