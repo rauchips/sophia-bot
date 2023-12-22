@@ -126,7 +126,7 @@ export class AppController {
           start = Date.now();
           end = Date.now() + lifetime * 1000;
           method = 'pin';
-          args = [phoneNumber, profileName, 'homeMenu'];
+          args = [profileName, 'homeMenu'];
 
           //cache session, start, end, method
           await this.storeService.set(sessionKey, session, lifetime);
@@ -141,8 +141,7 @@ export class AppController {
           action = response[1];
 
           //cache next menu to be called by pin
-          const nextMenuKey = phoneNumber + '-next';
-          await this.storeService.set(nextMenuKey, method, lifetime);
+          await this.storeService.set(nextMenuKey, action, lifetime);
 
           //to be removed set pin to 1234
           await this.storeService.set(pinKey, '1234', lifetime);
@@ -189,13 +188,18 @@ export class AppController {
               break;
 
             default:
-              args = [phoneNumber, msg_body];
+              args = [profileName, msg_body];
 
               response = await this.menuService.menuRunner(method, args);
 
               if (response) {
                 method = response[0];
                 action = response[1];
+
+                if(action !== 'end'){
+                  //cache next menu to be called by pin
+                  await this.storeService.set(nextMenuKey, action, Math.floor((end - Date.now()) / 1000));
+                }
 
                 await this.storeService.set(
                   menuKey,
