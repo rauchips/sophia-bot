@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Logger, Injectable, Inject } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
@@ -6,14 +6,16 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 export class StoreService {
   constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
 
+  private readonly logger: Logger = new Logger(StoreService.name);
+
   async get(key: string): Promise<any> {
     let value: string | null;
 
     try {
-      value = await this.cache.get<string>(key); 
-      console.log('key: ' + key + ' value: ' + value);
+      value = await this.cache.get<string>(key);
+      this.logger.log('key: ' + key + ' value: ****');
     } catch (error) {
-      console.log(error);      
+      console.log(error);
     }
 
     return value === undefined ? (value = null) : value;
@@ -22,8 +24,8 @@ export class StoreService {
   async set(key: string, value: any, ttl: number) {
     try {
       await this.cache.set(key, value, {
-        ttl
-      })
+        ttl,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -31,7 +33,7 @@ export class StoreService {
 
   async delete(key: string) {
     try {
-      await this.cache.del(key);      
+      await this.cache.del(key);
     } catch (error) {
       console.log(error);
     }

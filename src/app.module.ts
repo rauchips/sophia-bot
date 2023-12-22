@@ -6,7 +6,6 @@ import { MenuService } from './menu/menu.service';
 import { StoreModule } from './store/store.module';
 import { ProfileService } from './profile/profile.service';
 import { StoreService } from './store/store.service';
-
 @Module({
   imports: [
     ConfigModule.forRoot({

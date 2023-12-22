@@ -1,17 +1,23 @@
-import { Controller, Get, Query, Res, Post, Req, Body } from '@nestjs/common';
+import {
+  Logger,
+  Controller,
+  Get,
+  Query,
+  Res,
+  Post,
+  Req,
+  Body,
+} from '@nestjs/common';
 import { AppService } from './app.service';
-import e, { Response, Request } from 'express';
+import { Response, Request } from 'express';
 import { MessageCategory, WebhookDto } from './app.dto';
 import { MenuService } from './menu/menu.service';
 import { StoreService } from './store/store.service';
 import { ProfileService } from './profile/profile.service';
 import { v4 as uuidv4 } from 'uuid';
-import * as https from 'https';
-import axios from 'axios';
 
 @Controller()
 export class AppController {
-  private process: any;
   constructor(
     private readonly appService: AppService,
     private readonly menuService: MenuService,
@@ -19,6 +25,7 @@ export class AppController {
     private readonly profileService: ProfileService,
   ) {}
 
+  private readonly logger: Logger = new Logger(AppController.name);
   // @Get('/reports/personal')
   // async getPersonalReports(@Res() res: Response){
   //   try {
@@ -39,7 +46,6 @@ export class AppController {
 
   @Get('/webhook')
   getVerified(@Query() query: object, @Res() res: Response): Response {
-
     const mode: string = query['hub.mode'];
     const challenge: string = query['hub.challenge'];
     const verify_token: string = query['hub.verify_token'];
@@ -57,12 +63,14 @@ export class AppController {
     @Req() req: Request,
     @Body() webHookBody: WebhookDto,
   ): Promise<Response<any, Record<string, any>>> {
-    console.log('-----------------------start-----------------------------');
+    this.logger.log(
+      '-----------------------start-----------------------------',
+    );
 
     try {
       const messageType = this.appService.findMessageType(webHookBody);
 
-      console.log('message type: ' + messageType);
+      this.logger.log('message type: ' + messageType);
 
       if (
         messageType === MessageCategory.MESSAGE &&
@@ -84,7 +92,7 @@ export class AppController {
         let start: number | null = await this.storeService.get(startKey);
         let end: number | null = await this.storeService.get(endKey);
 
-        console.log('Current Time: ' + Date.now());
+        this.logger.log('Current Time: ' + Date.now());
         let response: string[] | null;
 
         let args: any[];
@@ -94,33 +102,40 @@ export class AppController {
 
         // if (session === null && msg_body === 'Hi Sophia') {
         // }
-        console.log(phoneNumber);
+        this.logger.log(phoneNumber);
 
-
-        if(session && start && end){
+        if (session && start && end) {
           const message_id =
             webHookBody.entry[0].changes[0].value.messages[0]['id'];
           //await this.appService.blueTick(message_id);
 
           method = await this.storeService.get(menuKey);
           args = [phoneNumber, msg_body];
-          
+
           response = await this.menuService.menuRunner(method, args);
-          if(response){
+          if (response) {
             method = response[0];
             action = response[1];
             //await this.storeService.set(menuKey, method, 120);
-            
-            console.log('Set New Menu Time: ' + (Math.floor((Date.now() - end) / 1000)));
 
-            await this.storeService.set(menuKey, method, Math.floor((end - Date.now()) / 1000));
+            this.logger.log(
+              'Set New Menu Time: ' + Math.floor((Date.now() - end) / 1000),
+            );
+
+            await this.storeService.set(
+              menuKey,
+              method,
+              Math.floor((end - Date.now()) / 1000),
+            );
           }
 
-        console.log('Current Time: ' + new Date(Date.now()));
-        console.log('Difference Time: ' + (Math.floor((Date.now() - end) / 1000)));
-
-        }else{
-          const profile = await this.profileService.fetchProfile(profileName.split(' ').join(''),
+          this.logger.log('Current Time: ' + new Date(Date.now()));
+          this.logger.log(
+            'Difference Time: ' + Math.floor((Date.now() - end) / 1000),
+          );
+        } else {
+          const profile = await this.profileService.fetchProfile(
+            profileName.split(' ').join(''),
           );
 
           if (!profile) {
@@ -129,10 +144,10 @@ export class AppController {
 
           const lifetime: number = Number(process.env.lifetime);
           start = Date.now();
-          end = Date.now() + (lifetime * 1000);
+          end = Date.now() + lifetime * 1000;
 
-          console.log('Session started at: ' + new Date(start));
-          console.log('Session ends at: ' + new Date(end));
+          this.logger.log('Session started at: ' + new Date(start));
+          this.logger.log('Session ends at: ' + new Date(end));
 
           await this.storeService.set(startKey, start, lifetime);
           await this.storeService.set(endKey, end, lifetime);
@@ -152,28 +167,32 @@ export class AppController {
           response = await this.menuService.menuRunner(method, args);
         }
 
-        if(response !== null){
-          if(method === 'familyTree' || method === 'reports'){
-            await this.appService.sendMessage(response[2], phoneNumber, true)
-          }
-          else{
-            await this.appService.sendMessage(response[2], phoneNumber);;
+        if (response !== null) {
+          if (method === 'familyTree' || method === 'reports') {
+            await this.appService.sendMessage(response[2], phoneNumber, true);
+          } else {
+            await this.appService.sendMessage(response[2], phoneNumber);
           }
           //method === 'familyTree' ? : await this.appService.sendMessage(response[2], process.env.to);
-          
-          console.log('new menu name: ' + response[0]);
 
-          console.log('menu displayed: ' + response[2]);
+          this.logger.log('new menu name: ' + response[0]);
+
+          this.logger.log('menu displayed: ' + response[2]);
         }
 
         if (action === 'end') {
           await this.storeService.delete(sessionKey);
           await this.storeService.delete(menuKey);
-          if(method !== 'exit') 
-            await this.appService.sendMessage('Thank you for interacting with _Sophia_, see you later! 😊', phoneNumber)
+          if (method !== 'exit')
+            await this.appService.sendMessage(
+              'Thank you for interacting with _Sophia_, see you later! 😊',
+              phoneNumber,
+            );
         }
       }
-      console.log('-----------------------end-----------------------------');
+      this.logger.log(
+        '-----------------------end-----------------------------',
+      );
       return res.sendStatus(200);
     } catch (error) {
       console.log(error);
