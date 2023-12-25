@@ -25,7 +25,7 @@ export class AppController {
 
   private readonly logger: Logger = new Logger(AppController.name);
 
-  @Get('/webhook')
+  @Get('/webhooks')
   getVerified(@Query() query: object, @Res() res: Response): Response {
     const mode: string = query['hub.mode'];
     const challenge: string = query['hub.challenge'];
@@ -42,7 +42,7 @@ export class AppController {
     }
   }
 
-  @Post('/webhook')
+  @Post('/webhooks')
   async postMessage(
     @Res() res: Response,
     @Req() req: Request,
