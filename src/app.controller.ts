@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Body,
+  Header,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response, Request } from 'express';
@@ -26,6 +27,7 @@ export class AppController {
   private readonly logger: Logger = new Logger(AppController.name);
 
   @Get('/webhooks')
+  @Header('content-type', 'text/plain')
   getVerified(@Query() query: object, @Res() res: Response): Response {
     const mode: string = query['hub.mode'];
     const challenge: string = query['hub.challenge'];
