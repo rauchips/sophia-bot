@@ -46,6 +46,11 @@ async function bootstrap() {
     }),
   });
 
+  app.enableCors({
+    origin: true,
+    methods: ["GET", "POST"],
+    credentials: true,
+  });
   await app.listen(3000);
 }
 bootstrap();
