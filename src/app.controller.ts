@@ -104,6 +104,11 @@ export class AppController {
             return res.sendStatus(200);
           }
 
+          //extract message id and send a blue tick to the user for that message id
+          const message_id =
+            webHookBody.entry[0].changes[0].value.messages[0]['id'];
+          await this.appService.blueTick(message_id);
+
           //hi sophia
           if (msg_body.toLocaleLowerCase() !== 'hi sophia') {
             this.logger.log(
@@ -116,11 +121,6 @@ export class AppController {
             );
             return res.sendStatus(200);
           }
-
-          //extract message id and send a blue tick to the user for that message id
-          const message_id =
-            webHookBody.entry[0].changes[0].value.messages[0]['id'];
-          await this.appService.blueTick(message_id);
 
           //assign session, start, end, method and arguments
           const lifetime: number = Number(process.env.lifetime);
