@@ -36,7 +36,7 @@ export class MenuService {
 
     switch (text) {
       case '1':
-        menu = this.tableBanking(profilName);
+        menu = this.reports(profilName);
         break;
       case '2':
         menu = ['welfare', 'end', 'Here is the *WELFARE* menu.'];
@@ -191,14 +191,14 @@ export class MenuService {
         menu = [
           'viewPersonalReports',
           'end',
-          'https://webapp-231203115253.azurewebsites.net/reports/personal',
+          `Dear _${profilName}_ here is your *personal* generated report, click on the link below to view and interact with your data.\nhttps://sophia-core-txw28.ondigitalocean.app/reports/personal`,
         ];
         break;
       case '2':
         menu = [
           'viewGroupReports',
           'end',
-          'https://webapp-231203115253.azurewebsites.net/reports/group',
+          `Dear _${profilName}_ here is the G7 Nairobi Chapter's *group* generated report, click on the link below to view and interact with the data.\nhttps://sophia-core-txw28.ondigitalocean.app/reports/group`,
         ];
         break;
       case '3':

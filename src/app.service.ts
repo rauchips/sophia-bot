@@ -121,7 +121,7 @@ export class AppService {
 
       const response = await axios({
         method: 'POST', // Required, HTTP method, a string, e.g. POST, GET
-        url: 'https://webapp-231203115253.azurewebsites.net/user/profile',
+        url: 'https://sophia-core-txw28.ondigitalocean.app/api/v1/user/profile',
         data: {
           Username: profileName,
         },
